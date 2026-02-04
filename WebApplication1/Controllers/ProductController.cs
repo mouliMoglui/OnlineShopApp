@@ -23,22 +23,24 @@ namespace WebApplication1.Controllers
             return NotFound("Couldn't get any products");
         }
 
-        [HttpGet("/productById")]
+        [HttpGet("/productId{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            try
-            {
-                var result = await context.Products.FirstAsync(product => product.Id == id);
-                Console.WriteLine(result);
-                if (result != null)
-                    return Ok(result);
-            }
-            catch
-            {
+            var result = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
+            if (result == null)
                 return NotFound($"Couldn't find product with ID {id}");
-            }
 
-            return NotFound($"Couldn't find product with ID {id}");
+            return Ok(result);
+        }
+
+        [HttpGet("/productCategory{category}")]
+        public async Task<IActionResult> GetProductByCategory(string category)
+        {
+            var result = context.Products.Where(p => p.Category == category).ToList();
+            if (result == null)
+                return NotFound($"Couldn't find products with category {category}");
+
+            return Ok(result);
         }
     }
 }

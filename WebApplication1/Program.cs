@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WebApplication1;
+using WebApplication1.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,10 +15,46 @@ builder.Services.AddDbContext<OnlineShopContext>(options => options.UseInMemoryD
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<OnlineShopContext>();
+
+    if (!context.Products.Any())
+    {
+        context.Products.AddRange(
+            new Product
+            {
+                Name = "Robotis X15+ Pro AI",
+                Price = 3000,
+                Category = "laptop",
+                Description = "Bleeding edge laptop powered by an NPU",
+                Brand = "Lenovo"
+            },
+            new Product
+            {
+                Name = "Razor Premium",
+                Price = 5800,
+                Category = "tv",
+                Description = "Ultra thin full color 8K OLED TV",
+                Brand = "Nanotek"
+            },
+            new Product
+            {
+                Name = "Z26+",
+                Price = 2500,
+                Category = "phone",
+                Description = "lorem ipsum",
+                Brand = "Matek"
+            }
+        );
+
+        context.SaveChanges();
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    builder.Logging.AddConsole();
     app.UseSwagger();
     app.UseSwaggerUI();
 }

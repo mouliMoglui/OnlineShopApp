@@ -8,9 +8,6 @@ namespace WebApplication1
         public DbSet<Product> Products { get; set; }
         public DbSet<User> Users { get; set; }
 
-        public OnlineShopContext(DbContextOptions options) : base(options)
-        { 
-            
-        }
+        public OnlineShopContext(DbContextOptions options) : base(options) {}
     }
 }
