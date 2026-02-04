@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1.Controllers
 {
@@ -8,34 +7,38 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        List<Product> products = new List<Product>() { };
+        private readonly OnlineShopContext context;
+
+        public ProductController(OnlineShopContext context)
+        {
+            this.context = context;
+        }
 
         [HttpGet("/products")]
-        IActionResult GetProducts()
+        public async Task<IActionResult> GetProducts()
         {
-            if (products == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Ok(products);
-            }
+            var result = await context.Products.ToListAsync();
+            if (result != null)
+                return Ok(result);
+            return NotFound("Couldn't get any products");
         }
 
         [HttpGet("/productById")]
-        IActionResult GetProductById(int id)
+        public async Task<IActionResult> GetProductById(int id)
         {
-            var product = products.Find(x => x.Id == id);
+            try
+            {
+                var result = await context.Products.FirstAsync(product => product.Id == id);
+                Console.WriteLine(result);
+                if (result != null)
+                    return Ok(result);
+            }
+            catch
+            {
+                return NotFound($"Couldn't find product with ID {id}");
+            }
 
-            if(product == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Ok(product);
-            }
+            return NotFound($"Couldn't find product with ID {id}");
         }
     }
 }
