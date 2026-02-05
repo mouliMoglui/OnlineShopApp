@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.DTOs;
 using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
@@ -8,34 +9,57 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        List<User> users = new List<User>() { };
+        private readonly OnlineShopContext context;
 
-        [HttpGet("/users")]
-        IActionResult GetUsers()
+        public UserController(OnlineShopContext context)
         {
-            if(users == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Ok(users);
-            }
+            this.context = context;
         }
 
-        [HttpGet("/userById")]
-        IActionResult GetUserById(int id)
+        [HttpPost("signup")]
+        public IActionResult SignUp([FromBody] UserFullDTO dto)
         {
-            var user = users.Find(x => x.Id == id);
+            if (context.Users.Any(u => u.Email == dto.Email))
+            {
+                return BadRequest("Email already in use");
+            }
 
-            if(user == null)
+            var newUser = new User
             {
-                return NotFound();
-            }
-            else
+                Email = dto.Email,
+                Password = dto.Password,
+            };
+
+            context.Users.Add(newUser);
+            context.SaveChanges();
+
+            return Ok(new
             {
-                return Ok(user);
+                message = "User created successfully",
+                userId = newUser.Id,
+            });
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] UserFullDTO dto)
+        {
+            var user = context.Users.FirstOrDefault(u => u.Email == dto.Email);
+            
+            if (user == null)
+            {
+                return Unauthorized("User not found");
             }
+
+            if (dto.Password != user.Password)
+            {
+                return Unauthorized("Invalid password");
+            }
+
+            return Ok(new
+            {
+                message = "User authorized successfully",
+                userId = user.Id, 
+            });
         }
     }
 }
